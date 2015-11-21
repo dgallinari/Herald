@@ -6,17 +6,6 @@ use InvalidArgumentException;
 class Arr
 {
     /**
-     * Return the default value of the given value.
-     *
-     * @param  mixed  $value
-     * @return mixed
-     */
-    public static function value($value)
-    {
-        return $value instanceof Closure ? $value() : $value;
-    }
-
-    /**
      * Get an item from an array using "dot" notation.
      *
      * @param  array  $array
@@ -37,7 +26,7 @@ class Arr
         }
         foreach (explode(':', $key) as $segment) {
             if (!is_array($array) || !array_key_exists($segment, $array)) {
-                return static::value($default);
+                return value($default);
             }
             $array = $array[$segment];
         }
