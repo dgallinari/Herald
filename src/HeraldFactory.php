@@ -25,7 +25,7 @@ class Herald implements FactoryInterface
      */
     public function make(array $config)
     {
-        Arr::requires($config, 'driver');
+        Arr::requires($config, ['driver']);
 
         return $this->getGatewayFor($config['driver'])->make($config);
     }
