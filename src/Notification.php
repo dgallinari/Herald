@@ -1,48 +1,53 @@
 <?php
 namespace HeraldOfArms\Herald;
 
-use Herald\Contracts\NotificationInterface;
+use HeraldOfArms\Contracts\NotificationInterface;
+use League\HTMLToMarkdown\HtmlConverter;
+use Html2Text\Html2Text;
 
 /**
  * Base notification class.
  */
 class Notification implements NotificationInterface
 {
-    CONST LABEL_DEFAULT = "#DSSA";
-    CONST LABEL_PRIMARY = "#DSSA";
-    CONST LABEL_SUCCESS = "#DSSA";
-    CONST LABEL_INFO = "#DSSA";
-    CONST LABEL_WARNING = "#DSSA";
-    CONST LABEL_DANGER = "#DSSA";
+    protected $data = [];
 
-    private $data = array();
+    protected $parameters = [];
 
-    private $attachments = array();
-
-    private $subject;
-
-    private $body;
-
-    private $label;
+    protected $message;
 
     /**
      * Constructor
      *
-     * @param        $body
-     * @param array  $data
+     * @param        $message    The content of the message
+     * @param array  $data       The data the should replace tokens at the $message
+     * @param array  $parameters Optional paramethers to allow customization
      */
-    public function __construct($body, array $data = [])
+    public function __construct($message, array $data = [], array $parameters = [])
     {
-        $this->body    = $body;
-        $this->data = $data;
+        $this->message     = $message;
+        $this->data        = $data;
+        $this->parameters = $parameters;
     }
 
     /**
      * @inheritDoc
      */
-    public function getMessage()
+    public function getMessage($type = 'original')
     {
-        return $this->message;
+        switch ($type) {
+            case 'markdown':
+                $message = $this->getMessageAsMarkdown();
+                break;
+            case 'plain':
+                $message = $this->getMessageAsPlainText();
+                break;
+            default:
+                $message = $this->message;
+                break;
+        }
+
+        return $this->tokenReplace($message, $this->data);
     }
 
     /**
@@ -52,7 +57,7 @@ class Notification implements NotificationInterface
      *
      * @return $this
      */
-    public function setMessage($message)
+    public function message($message)
     {
         $this->message = $message;
 
@@ -85,5 +90,57 @@ class Notification implements NotificationInterface
         $this->parameters = array_merge($this->parameters, $paramenters);
 
         return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function data($data)
+    {
+        $this->data = $data;
+
+        return $this;
+    }
+
+    protected function getMessageAsMarkdown()
+    {
+        $converter = new HtmlConverter();
+        return $converter->convert($this->message);
+    }
+
+    protected function getMessageAsPlainText()
+    {
+        $html = new Html2Text($this->message, [
+                  'do_links' => 'none',
+        ]);
+
+        return $html->getText();
+    }
+
+    private function tokenReplace($text, array $data = array()) {
+        $text_tokens = $this->tokenScan($text);
+        if (empty($text_tokens)) {
+            return $text;
+        }
+
+        $replacements = array();
+
+        foreach ($text_tokens as $token) {
+            $token_name = str_replace([']','['],'', $token);
+            $replacements[$token] = Arr::get($data, $token_name);
+        }
+
+        $tokens = array_keys($replacements);
+        $values = array_values($replacements);
+
+        return str_replace($tokens, $values, $text);
+    }
+
+    private function tokenScan($text) {
+        // Matches tokens with the following pattern: [$token] OR [$var:token]
+        preg_match_all("/\[[^\]]*\]/", $text, $tokens);
+        $tokens = $tokens[0];
+
+        return $tokens;
     }
 }
