@@ -1,5 +1,5 @@
 {
-    "name": "herald/herald",
+    "name": "heraldofarms/herald",
     "description": "The messenger for your app to convey messages or notifications",
     "keywords": ["herald", "messages", "notifications", "integrations"],
     "license": "MIT",
@@ -16,12 +16,12 @@
         "phpunit/phpunit": "~4.0"
     },"autoload": {
     "psr-4": {
-            "Herald\\Herald\\": "src/"
+            "HeraldOfArms\\Herald\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "HeraldHQ\\Herald\\Tests\\": "tests/"
+            "HeraldOfArms\\Herald\\Tests\\": "tests/"
         }
     },
     "config": {
