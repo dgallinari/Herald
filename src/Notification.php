@@ -2,8 +2,8 @@
 namespace HeraldOfArms\Herald;
 
 use HeraldOfArms\Contracts\NotificationInterface;
-use League\HTMLToMarkdown\HtmlConverter;
 use Html2Text\Html2Text;
+use League\HTMLToMarkdown\HtmlConverter;
 
 /**
  * Base notification class.
@@ -16,6 +16,8 @@ class Notification implements NotificationInterface
 
     protected $message;
 
+    protected $config;
+
     /**
      * Constructor
      *
@@ -25,8 +27,8 @@ class Notification implements NotificationInterface
      */
     public function __construct($message, array $data = [], array $parameters = [])
     {
-        $this->message     = $message;
-        $this->data        = $data;
+        $this->message    = $message;
+        $this->data       = $data;
         $this->parameters = $parameters;
     }
 
@@ -72,6 +74,9 @@ class Notification implements NotificationInterface
         if (Arr::has($this->parameters, $parameter)) {
             return $this->parameters[$parameter];
         }
+
+        return null;
+
     }
 
     /**
@@ -85,7 +90,7 @@ class Notification implements NotificationInterface
     /**
      * @inheritDoc
      */
-    public function overwriteParameters($paramenters)
+    public function merge($paramenters)
     {
         $this->parameters = array_merge($this->parameters, $paramenters);
 
@@ -102,31 +107,37 @@ class Notification implements NotificationInterface
         return $this;
     }
 
-    protected function getMessageAsMarkdown()
+    public function getMessageAsMarkdown(array $config = [])
     {
-        $converter = new HtmlConverter();
+        $converter = new HtmlConverter($config);
+
         return $converter->convert($this->message);
     }
 
-    protected function getMessageAsPlainText()
+    public function getMessageAsPlainText(array $config = [])
     {
-        $html = new Html2Text($this->message, [
-                  'do_links' => 'none',
-        ]);
+        if (empty($config)) {
+            $config = [
+                      'do_links' => 'none',
+            ];
+        }
+
+        $html = new Html2Text($this->message, $config);
 
         return $html->getText();
     }
 
-    private function tokenReplace($text, array $data = array()) {
+    private function tokenReplace($text, array $data = [])
+    {
         $text_tokens = $this->tokenScan($text);
         if (empty($text_tokens)) {
             return $text;
         }
 
-        $replacements = array();
+        $replacements = [];
 
         foreach ($text_tokens as $token) {
-            $token_name = str_replace([']','['],'', $token);
+            $token_name           = str_replace([']', '['], '', $token);
             $replacements[$token] = Arr::get($data, $token_name);
         }
 
@@ -136,7 +147,8 @@ class Notification implements NotificationInterface
         return str_replace($tokens, $values, $text);
     }
 
-    private function tokenScan($text) {
+    private function tokenScan($text)
+    {
         // Matches tokens with the following pattern: [$token] OR [$var:token]
         preg_match_all("/\[[^\]]*\]/", $text, $tokens);
         $tokens = $tokens[0];
