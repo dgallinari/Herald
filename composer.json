@@ -1,12 +1,7 @@
 {
-  "name": "heraldofarms/herald",
+  "name": "herald/herald",
   "description": "The messenger for your app to convey messages or notifications",
-  "keywords": [
-    "herald",
-    "messages",
-    "notifications",
-    "integrations"
-  ],
+  "keywords": ["herald", "messages", "notifications", "integrations"],
   "license": "MIT",
   "authors": [
     {
