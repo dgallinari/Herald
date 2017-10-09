@@ -9,6 +9,7 @@ Coming soon...
 ## Contributing
 
 Thank you for considering contributing to Herald!
+
 Contribution guide: coming soon...
 
 ## Security Vulnerabilities
